@@ -1,7 +1,11 @@
 
 For more information on backdrop, see http://backdrop.rubyforge.org
 
-NOTE: Change this information in PostInstall.txt 
-You can also delete it if you don't want it.
+In order to run a backdrop daemon:
 
+* Create an Backdrop::Runner implementation
+
+* Create matching config.yml
+
+See the README at http://github.com/peritor/backdrop/tree/master for details
 

@@ -4,29 +4,74 @@
 
 == DESCRIPTION:
 
-FIX (describe your package)
-
+ 	 A Ruby daemon library that makes writing background daemons easy
+ 	 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+  Backdrop allows you to easily create Ruby background daemons. It utilizes the daemon gem to go
+  into the background and has some additional management utilities that allow you to control the
+  running backdrop.
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  $ backdrop-daemon start config.yml
+  
+  $ backdrop-daemon stop config.yml
+  
+  $ backdrop-daemon restart config.yml
+  
+  
+  Where config.yml is:
+  
+  ---
+  daemon_path: /path/to/my/daemon.rb
+  log_file: /path/to/mylog
+  pid_file: /path/to/store.pid
+  debug: false
+  
+  The `daemon_path` config parameter refers to your Ruby library that will be required by backdrop.
+  This file needs to implement the actual processing task and can react to start/stop.
+  
+  Example:
+  
+  module Backdrop
+    class Runner
+      def self.run(logger)
+        logger.info "Running im my loop"
+        # .. doing the background operation once
+        # will be called in a loop
+      end
+      
+      def self.start(logger)
+        # optional - react to starting the daemon
+        # e.g. do setup
+      end
+      
+      def self.run(logger)
+        # optional - react to stopping the daemon
+        # e.g. do resource teardown
+      end
+    end
+  end
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* ActiveSupport
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* sudo gem install backdrop
+
+* Create an Backdrop::Runner implementation
+
+* Create matching config.yml
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2008 FIXME full name
+Copyright (c) 2008 Jonathan Weiss, based on work taken
+from Based on Highrise to LDAP Gateway http://svn.thoughtbot.com/highrise-ldap-proxy/
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
