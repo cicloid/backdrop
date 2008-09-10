@@ -1,10 +1,10 @@
 = backdrop
 
-* FIX (url)
+  http://labs.peritor.com/backdrop
 
 == DESCRIPTION:
 
- 	 A Ruby daemon library that makes writing background daemons easy
+ 	A Ruby daemon library that makes writing background daemons easy
  	 
 == FEATURES/PROBLEMS:
 
