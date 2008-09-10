@@ -3,14 +3,17 @@ module Backdrop
     attr_accessor :config, :logger, :pidfile
     include Daemon  
 
-    def initialize(options = {})
+    def initialize(config_file = nil)
+      options = YAML.load(ERB.new(File.read(config_file)).result).symbolize_keys
+
       @config = {
         :log_file => "#{Dir.tmpdir}/backdrop.log",
         :pid_file => "#{Dir.tmpdir}/backdrop.pid",
-        :debug => false
+        :debug => false,
+        :daemon_path => nil # set to path pointing to you daemon implementation
       }.update(options)
     
-      @config.symbolize_keys!
+      validate!
     
       self.logger = Logger.new(config[:log_file])
       self.logger.level = config[:debug] ? Logger::DEBUG : Logger::INFO 
@@ -18,6 +21,10 @@ module Backdrop
       self.logger.info ""
 
       @pidfile = Backdrop::PidFile.new(config[:pid_file])
+    end
+    
+    def validate!
+      raise ArgumentError, "Need a main daemon implementation class, please set :daemon_path" if config[:daemon_path].blank?
     end
   
     def become_user(username = 'nobody', chroot = false)
@@ -37,6 +44,10 @@ module Backdrop
       logger.info "Starting server"
       logger.info "logging to #{config[:log_file]}"
       logger.info "storing PID at #{config[:pid_file]}"
+      logger.info "requiring main implementation from #{config[:daemon_path]}"
+      
+      require config[:daemon_path]
+      
       daemonize(logger)
 
       logger.info "Became daemon with process id: #{$$}"
@@ -48,17 +59,17 @@ module Backdrop
       end
 
       trap("TERM") do 
-        logger.info("Received TERM signal.  Exiting.") if logger
+        logger.info("Received signal TERM - Shutting down") if logger
         pidfile.remove if pidfile
         exit
       end
     
-      Backdrop::Runner.start
+      Backdrop::Runner.start(logger)
     
       # main loop run
       begin
         loop do
-          Backdrop::Runner.run
+          Backdrop::Runner.run(logger)
         end
       rescue Object => e
         logger.error "Exception in runner: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -69,13 +80,13 @@ module Backdrop
     def stop
       if @pidfile.pid
         
-        Backdrop::Runner.stop
+        Backdrop::Runner.stop(logger)
         
-        puts "Sending TERM signal to process #{@pidfile.pid}" if config[:debug]
-        logger.info("Killing server at #{@pidfile.pid}")
-        Process.kill("TERM", @pidfile.pid.to_i)
+        puts "Sending signal TERM to process #{pidfile.pid}" if config[:debug]
+        logger.info("Killing server with PID #{pidfile.pid}")
+        Process.kill("TERM", pidfile.pid.to_i)
       else
-        puts "Can't find pid.  Are you sure I'm running?"
+        puts "PID cannot be found. Server not running?"
       end
     end
 

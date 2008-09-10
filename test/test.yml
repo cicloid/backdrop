@@ -1,0 +1,5 @@
+---
+daemon_path: <%= File.expand_path(File.dirname(__FILE__) + "/test/test_impl.rb") %>
+log_file: /tmp/foo.log
+pid_file: /tmp/foo.pid
+debug: true
