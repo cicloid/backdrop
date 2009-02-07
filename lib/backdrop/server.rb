@@ -85,6 +85,7 @@ module Backdrop
         puts "Sending signal TERM to process #{pidfile.pid}" if config[:debug]
         logger.info("Killing server with PID #{pidfile.pid}")
         Process.kill("TERM", pidfile.pid.to_i)
+        @pidfile.remove
       else
         puts "PID cannot be found. Server not running?"
       end
